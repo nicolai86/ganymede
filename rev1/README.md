@@ -1,7 +1,9 @@
 # revision 0.3
 
 There is no build guide for rev 0.3 for now; See the assembled pictures for details; 
-note that all decoupling capacitors are placed on the opposite side.
+The gerber files for this revision are available in [gerber.zip](./gerber.zip).
+
+Note that all decoupling capacitors are placed on the opposite side.
 
 ## left side (master)
 
