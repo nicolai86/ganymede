@@ -19,7 +19,8 @@
 
 bool i2c_initialized = 0;
 
-uint8_t init_pca9675(void) {
+uint8_t init_pca9675(void)
+{
     if (i2c_initialized == 0) {
         i2c_init();
         i2c_initialized = true;
@@ -28,12 +29,12 @@ uint8_t init_pca9675(void) {
 
     uint8_t reset_payload[] = { PCA9675_I2C_RESET_CMD };
     i2c_status_t result;
-    result = i2c_transmit(PCA9675_I2C_RESET_ADDR<<1, (void *)&reset_payload, sizeof(reset_payload), PCA9675_I2C_TIMEOUT);
+    result = i2c_transmit(PCA9675_I2C_RESET_ADDR << 1, (void *)&reset_payload, sizeof(reset_payload), PCA9675_I2C_TIMEOUT);
     i2c_stop();
 
     // P0x as input, P1x as output
     uint8_t port_init[] = { 0b11111111, 0b00000000 };
-    result = i2c_transmit(PCA9675_I2C_ADDR<<1, (void *)&port_init, sizeof(port_init), PCA9675_I2C_TIMEOUT);
+    result = i2c_transmit(PCA9675_I2C_ADDR << 1, (void *)&port_init, sizeof(port_init), PCA9675_I2C_TIMEOUT);
     i2c_stop();
 
     // TODO error handling

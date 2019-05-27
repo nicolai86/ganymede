@@ -28,17 +28,17 @@
 #include <hal.h>
 
 #ifndef I2C1_BANK
-    #define I2C1_BANK GPIOB
+#define I2C1_BANK GPIOB
 #endif
 #ifndef I2C1_SCL
-    #define I2C1_SCL 6
+#define I2C1_SCL 6
 #endif
 #ifndef I2C1_SDA
-    #define I2C1_SDA 7
+#define I2C1_SDA 7
 #endif
 
 #ifndef I2C_DRIVER
-  #define I2C_DRIVER I2CD1
+#define I2C_DRIVER I2CD1
 #endif
 
 typedef int16_t i2c_status_t;
@@ -49,9 +49,9 @@ typedef int16_t i2c_status_t;
 
 void i2c_init(void);
 i2c_status_t i2c_start(uint8_t address);
-i2c_status_t i2c_transmit(uint8_t address, const uint8_t* data, uint16_t length, uint16_t timeout);
-i2c_status_t i2c_receive(uint8_t address, uint8_t* data, uint16_t length, uint16_t timeout);
-i2c_status_t i2c_transmit_receive(uint8_t address, uint8_t * tx_body, uint16_t tx_length, uint8_t * rx_body, uint16_t rx_length);
-i2c_status_t i2c_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t* data, uint16_t length, uint16_t timeout);
-i2c_status_t i2c_readReg(uint8_t devaddr, uint8_t* regaddr, uint8_t* data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c_transmit(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c_receive(uint8_t address, uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c_transmit_receive(uint8_t address, uint8_t *tx_body, uint16_t tx_length, uint8_t *rx_body, uint16_t rx_length);
+i2c_status_t i2c_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c_readReg(uint8_t devaddr, uint8_t *regaddr, uint8_t *data, uint16_t length, uint16_t timeout);
 void i2c_stop(void);
