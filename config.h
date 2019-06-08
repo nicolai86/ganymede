@@ -8,7 +8,7 @@
 #define PRODUCT_ID      0x3061
 #define DEVICE_VER      0x0003
 #define MANUFACTURER    nicolai86
-#define PRODUCT         kepler
+#define PRODUCT         Ganymede
 #define DESCRIPTION     An split ergonomic keyboard based on the crkbd
 
 #define STM32_BOOTLOADER_ADDRESS 0x1FFFD800

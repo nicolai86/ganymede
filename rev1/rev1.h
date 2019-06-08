@@ -1,5 +1,5 @@
-#ifndef KEPLERH
-#define KEPLERH
+#ifndef GANYMEDEH
+#define GANYMEDEH
 
 #include "quantum.h"
 

@@ -1,7 +1,7 @@
-# kepler
-the kepler keyboard. An ARM based, split ergonomic keyboard.
+# Ganymede
+the Ganymede keyboard. An ARM based, split ergonomic keyboard.
 
-![current revision](./kepler-v0.3.jpg)
+![current revision](./ganymede-v0.3.jpg)
 
 # features 
 
@@ -15,10 +15,10 @@ the kepler keyboard. An ARM based, split ergonomic keyboard.
 # qmk setup
 
 - clone qmk
-- add kepler as a submodule: `git submodule add https://github.com/nicolai86/kepler.git keyboards/kepler`
-- flash your kepler: `make kepler/rev1:default:dfu-util`
+- add ganymede as a submodule: `git submodule add https://github.com/nicolai86/ganymede.git keyboards/ganymede`
+- flash your ganymede: `make ganymede/rev1:default:dfu-util`
 
 # images of rev 0.3 (qmk rev1)
 
-![left side](./kepler-v0.3-left-side.jpg)
-![right side](./kepler-v0.3-right-side.jpg)
+![left side](./ganymede-v0.3-left-side.jpg)
+![right side](./ganymede-v0.3-right-side.jpg)

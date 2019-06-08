@@ -65,13 +65,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [QWERTY] = LAYOUT_kc(
         ESC,      Q,   W,     E,     R,     T, \
         GUI_EQ,   A,   S,     D,     F,     G, \
-        LSHIFT,   Z,   X,     C,     V,     B, \
-        LCTL,   LALT,     LOWER,  RAISE, SPC,  BSPC, \
+        LSHIFT,  ALTZ,   X,     C,     V,     B, \
+        LCTL,   LALT,     LCTL,  LOWER, SPC,  BSPC, \
 
         Y,     U,     I,     O,     P,     BSLASH, \
         H,     J,     K,     L,     SCLN,  GUI_QUO, \
-        N,     M,     COMM,  DOT,   SLASH, RSHIFT, \
-        TAB,  ENTER,        LOWER, RAISE,    RALT,   RCTL \
+        N,     M,     COMM,  DOT,  ALTSLSH, RSHIFT, \
+        TAB,  ENTER,        RAISE, RCTL,    RALT,   RCTL \
     ),
     [_LOWER] = LAYOUT_kc( \
                           TRNS,     1,     2,     3,     4,     5, \
