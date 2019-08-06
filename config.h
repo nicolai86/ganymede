@@ -33,4 +33,7 @@
 #define I2C1_SDA 7
 #define I2C1_SCL 8
 
-
+#define DRIVER_COUNT 1
+#define DRIVER_LED_TOTAL 64
+#define ISSI_ADDR_1 0x50
+#define ISSI_ADDR_2 0x53

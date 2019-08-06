@@ -41,9 +41,10 @@ uint8_t init_pca9675(void)
     // to make the error very visible we'll stop booting at this point
 
     if (result != I2C_STATUS_SUCCESS) {
-        while (true) {
-            chThdSleepMilliseconds(1000);
-        }
+        palSetPad(GPIOB, 12);
+        palSetPad(GPIOB, 13);
+        palSetPad(GPIOB, 14);
+        palSetPad(GPIOB, 15);
     }
 
     return 0;
