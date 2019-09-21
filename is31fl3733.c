@@ -101,14 +101,14 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     i2c_status_t result;
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER_WRITELOCK, 0xC5 );
     if (result) {
-        for (;;) printf("failed to init: 1: %d\n", result);
+        // for (;;) printf("failed to init: 1: %d\n", result);
         return result;
     }
 
     // Select PG0
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER, ISSI_PAGE_LEDCONTROL );
     if (result) {
-        for (;;) printf("failed to init: 2\n");
+        // for (;;) printf("failed to init: 2\n");
         return result;
     }
 
@@ -117,7 +117,7 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     {
         result = IS31FL3733_write_register( addr, i, 0x00 );
         if (result) {
-            for (;;) printf("failed to init: 3\n");
+            // for (;;) printf("failed to init: 3\n");
             return result;
         }
     }
@@ -125,14 +125,14 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     // Unlock the command register.
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER_WRITELOCK, 0xC5 );
     if (result) {
-        for (;;) printf("failed to init: 4\n");
+        // for (;;) printf("failed to init: 4\n");
         return result;
     }
 
     // Select PG1
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER, ISSI_PAGE_PWM );
     if (result) {
-        for (;;) printf("failed to init: 5\n");
+        // for (;;) printf("failed to init: 5\n");
         return result;
     }
     // Set PWM on all LEDs to 0
@@ -141,7 +141,7 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     {
         result = IS31FL3733_write_register( addr, i, 0x00 );
         if (result) {
-            for (;;) printf("failed to init: 6\n");
+            // for (;;) printf("failed to init: 6\n");
             return result;
         }
     }
@@ -149,26 +149,26 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     // Unlock the command register.
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER_WRITELOCK, 0xC5 );
     if (result) {
-        for (;;) printf("failed to init: 7\n");
+        // for (;;) printf("failed to init: 7\n");
         return result;
     }
 
     // Select PG3
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER, ISSI_PAGE_FUNCTION );
     if (result) {
-        for (;;) printf("failed to init: 8\n");
+        // for (;;) printf("failed to init: 8\n");
         return result;
     }
     // Set global current to maximum.
     result = IS31FL3733_write_register( addr, ISSI_REG_GLOBALCURRENT, 0xFF );
     if (result) {
-        for (;;) printf("failed to init: 9\n");
+        // for (;;) printf("failed to init: 9\n");
         return result;
     }
     // Disable software shutdown, enable breath
     result = IS31FL3733_write_register( addr, ISSI_REG_CONFIGURATION, (sync << 6) | 0x01 | 0x02 );
     if (result) {
-        for (;;) printf("failed to init: 10\n");
+        // for (;;) printf("failed to init: 10\n");
         return result;
     }
 
@@ -189,6 +189,27 @@ void IS31FL3733_state_set_backlight_color(is31_state * state, uint8_t index, uin
     state->pwm_buffer[led.r] = red;
     state->pwm_buffer[led.g] = green;
     state->pwm_buffer[led.b] = blue;
+}
+
+void IS31FL3733_state_set_control_register( is31_state *state, uint8_t index, bool red, bool green, bool blue ) {
+    uint8_t control_register = index / 8;
+    uint8_t bit_r = index % 8;
+
+    if ( red ) {
+        state->led_control_registers[control_register] |= (1 << bit_r);
+    } else {
+        state->led_control_registers[control_register] &= ~(1 << bit_r);
+    }
+    if ( green ) {
+        state->led_control_registers[control_register] |= (1 << bit_r);
+    } else {
+        state->led_control_registers[control_register] &= ~(1 << bit_r);
+    }
+    if ( blue ) {
+        state->led_control_registers[control_register] |= (1 << bit_r);
+    } else {
+        state->led_control_registers[control_register] &= ~(1 << bit_r);
+    }
 }
 
 void IS31FL3733_state_set_led_control_register( is31_state *state, const is31_led*led, bool red, bool green, bool blue ) {

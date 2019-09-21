@@ -1,6 +1,7 @@
 /* Copyright 2017 Jason Williams
  * Copyright 2018 Jack Humbert
  * Copyright 2018 Yiancar
+ * Copyright 2019 Raphael Randschau
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +51,7 @@ void IS31FL3733_state_update_led_control_registers( is31_state *state );
 void IS31FL3733_state_set_color(is31_state * state, uint8_t row, uint8_t col, uint8_t red, uint8_t green, uint8_t blue );
 void IS31FL3733_state_set_backlight_color(is31_state * state, uint8_t index, uint8_t red, uint8_t green, uint8_t blue );
 void IS31FL3733_state_set_led_control_register( is31_state *state, const is31_led*led, bool red, bool green, bool blue );
+void IS31FL3733_state_set_control_register( is31_state *state, uint8_t index, bool red, bool green, bool blue );
 
 #define A_1  0x00
 #define A_2  0x01
