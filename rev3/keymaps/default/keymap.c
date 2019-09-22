@@ -2,6 +2,7 @@
 #include "../../../oled.h"
 #include "../../../is31fl3733.h"
 #include "../../rev3.h"
+#include "../../../m24m01.h"
 
 #define _QWERTY 0
 #define _LOWER 3
@@ -17,6 +18,8 @@ enum macro_keycodes {
 #define KC_LOWER LOWER
 #define KC_RAISE RAISE
 #define KC_RST   RESET
+#define KC_EEPROM_READ KC_F24
+#define KC_EEPROM_WRITE KC_F23
 #define KC_CTLTB CTL_T(KC_TAB)
 #define KC_ALTZ  ALT_T(KC_Z)
 #define KC_GUI_EQ RGUI_T(KC_EQUAL)
@@ -55,11 +58,11 @@ void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3)
     }
 
     if (layer_state & (1 << _RAISE)) {
-        palSetPad(GPIOB, 12);
+        palSetPad(GPIOB, 15);
         oled_write_ln_P(PSTR("RAISE"), false);
         didPrint = true;
     } else {
-        palClearPad(GPIOB, 12);
+        palClearPad(GPIOB, 15);
     }
 
     if (!didPrint) {
@@ -99,9 +102,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                           TRNS,  TRNS, TRNS,  TRNS,  TRNS,  TRNS, \
                           TRNS,  TRNS, TRNS,  TRNS,  TRNS,  TRNS, \
                           LCTRL, TRNS, TRNS,  TRNS,  TRNS,  TRNS, \
-                          TRNS,  TRNS, TRNS, RST
+                          EEPROM_WRITE,  EEPROM_READ, TRNS, RST
                         ),
 };
+
+uint8_t data = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record)
 {
@@ -122,9 +127,49 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
     IS31FL3733_state_update_pwm_buffers(state);
 
     switch (keycode) {
+        case KC_EEPROM_WRITE: {
+            if (record->event.pressed) return false;
+            uint8_t result = m24m01_byte_write(0x50, 1, 1, ++data);
+            printf("wrote 42 to m42m01 with result:%d\n", result);
+            return false;
+        }
+        case KC_EEPROM_READ: {
+            if (record->event.pressed) return false;
+            uint8_t d = 0xff;
+            uint8_t result = m24m01_random_byte_read(0x50, 1, 1, &d);
+            printf("read 1/1 to m42m01 with result: %d and data: %d\n", result, d);
+            data = d;
+            return false;
+        }
         case KC_RST: // Custom RESET code
             if (!record->event.pressed) {
-                reset_keyboard();
+                // reset_keyboard();
+                uint8_t error, address;
+                uint8_t nDevices;
+
+                printf("Scanning...\n");
+
+                nDevices = 0;
+                for(address = 1; address < 255; address++ )
+                {
+                    // The i2c_scanner uses the return value of
+                    // the Write.endTransmisstion to see if
+                    // a device did acknowledge to the address.
+                    error = i2c2_isDeviceReady(address, EEPROM_LONG_TIMEOUT);
+
+                    if (error == 0)
+                    {
+                        printf("I2C device found at address %x\n", address);
+
+                        nDevices++;
+                    }
+                    else
+                    {
+                        printf("error %d at address %x\n", error, address);
+                    }
+                }
+
+                printf("done: found %d\n", nDevices);
             }
             return false;
         case QWERTY:

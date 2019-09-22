@@ -13,15 +13,15 @@ const is31_led left_hand_matrix[4][6] = {
 };
 
 const is31_led left_backlight[9] = {
-    {I_11, G_11 , H_11},
-    {I_6, G_6 , H_6},
-    {I_14, G_14 , H_14},
-    {I_8, G_8 , H_8},
-    {I_4, G_4 , H_4},
-    {I_13, G_13 , H_13},
-    {I_10, G_10 , H_10},
-    {I_3, G_3 , H_3},
-    {I_1, G_1 , H_1}
+    {I_11, G_11, H_11},
+    {I_6,  G_6,  H_6},
+    {I_14, G_14, H_14},
+    {I_8,  G_8,  H_8},
+    {I_4,  G_4,  H_4},
+    {I_13, G_13, H_13},
+    {I_10, G_10, H_10},
+    {I_3,  G_3,  H_3},
+    {I_1,  G_1,  H_1}
 };
 
 is31_state left_hand = {
@@ -34,9 +34,9 @@ is31_state left_hand = {
 };
 
 const is31_led right_hand_matrix[4][6] = {
-    {{F_1, E_1, D_1}, {F_4, E_4, D_4}, {F_6, E_6, D_6}, {F_9, E_9, D_9}, {F_11, E_11, D_11}, {F_14, E_14, D_14}},
-    {{I_1, H_1, G_1}, {I_4, H_4, G_4}, {I_6, H_6, G_6}, {I_9, H_9, G_9}, {I_11, H_11, G_11}, {I_14, H_14, G_14}},
-    {{L_1, K_1, J_1},{L_4, K_4, J_4}, {L_6, K_6, J_6}, {L_9, K_9, J_9}, {L_11, K_11, J_11}, {L_14, K_14, J_14}},
+    {{F_1, E_1, D_1},    {F_4, E_4, D_4},    {F_6, E_6, D_6},    {F_9, E_9, D_9},    {F_11, E_11, D_11}, {F_14, E_14, D_14}},
+    {{I_1, H_1, G_1},    {I_4, H_4, G_4},    {I_6, H_6, G_6},    {I_9, H_9, G_9},    {I_11, H_11, G_11}, {I_14, H_14, G_14}},
+    {{L_1, K_1, J_1},    {L_4, K_4, J_4},    {L_6, K_6, J_6},    {L_9, K_9, J_9},    {L_11, K_11, J_11}, {L_14, K_14, J_14}},
     {{B_13, A_13, C_13}, {A_13, B_13, C_13}, {C_13, A_13, B_13}, {C_14, A_14, B_14}, {C_15, A_15, B_15}, {C_16, A_16, B_16}},
 };
 
@@ -86,15 +86,13 @@ void matrix_init_user(void)
     // debug_enable = true;
     // debug_matrix=true;
     // debug_keyboard=true;
-    // debug_mouse=true;
 
     i2c_init();
-
-    init_m24m01();
 
     oled_init(OLED_ROTATION_270);
     oled_on();
 
+    init_m24m01();
     uint8_t result;
     result = IS31FL3733_init(left_hand.address, IS31FL3733_CR_SYNC_MASTER);
     if (!result) {

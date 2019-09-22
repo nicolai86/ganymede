@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "oled.h"
-#include "i2c_master.h"
 #include <string.h>
 #include <hal.h>
 
@@ -77,10 +76,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // i2c defines
 #define I2C_CMD 0x00
 #define I2C_DATA 0x40
-#define I2C_TRANSMIT_P(data) oled_i2c_transmit((OLED_DISPLAY_ADDRESS << 1), &data[0], sizeof(data), I2C_TIMEOUT)
-#define I2C_STOP() oled_i2c_stop()
-#define I2C_TRANSMIT(data) oled_i2c_transmit((OLED_DISPLAY_ADDRESS << 1), &data[0], sizeof(data), I2C_TIMEOUT)
-#define I2C_WRITE_REG(mode, data, size) oled_i2c_writeReg((OLED_DISPLAY_ADDRESS << 1), mode, data, size, I2C_TIMEOUT)
+#define I2C_TRANSMIT_P(data) i2c2_transmit((OLED_DISPLAY_ADDRESS << 1), &data[0], sizeof(data), I2C_TIMEOUT)
+#define I2C_STOP() i2c2_stop()
+#define I2C_TRANSMIT(data) i2c2_transmit((OLED_DISPLAY_ADDRESS << 1), &data[0], sizeof(data), I2C_TIMEOUT)
+#define I2C_WRITE_REG(mode, data, size) i2c2_writeReg((OLED_DISPLAY_ADDRESS << 1), mode, data, size, I2C_TIMEOUT)
 
 #define HAS_FLAGS(bits, flags) ((bits & flags) == flags)
 
@@ -104,7 +103,7 @@ static uint8_t oled_i2c_address;
 
 // This configures the I2C clock to 400khz assuming a 72Mhz clock
 // For more info : https://www.st.com/en/embedded-software/stsw-stm32126.html
-static const I2CConfig oledi2cconfig = {
+static const I2CConfig i2c2cconfig = {
     STM32_TIMINGR_PRESC(15U) |
     STM32_TIMINGR_SCLDEL(4U) | STM32_TIMINGR_SDADEL(2U) |
     STM32_TIMINGR_SCLH(15U)  | STM32_TIMINGR_SCLL(21U),
@@ -126,10 +125,9 @@ static i2c_status_t chibios_to_qmk(const msg_t *status)
 }
 
 
-i2c_status_t oled_i2c_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *data, uint16_t length, uint16_t timeout)
+i2c_status_t i2c2_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *data, uint16_t length, uint16_t timeout)
 {
-    oled_i2c_address = devaddr;
-    i2cStart(&I2CD2, &oledi2cconfig);
+    i2cStart(&I2CD2, &i2c2cconfig);
 
     uint8_t complete_packet[length + 1];
     for (uint8_t i = 0; i < length; i++) {
@@ -137,24 +135,34 @@ i2c_status_t oled_i2c_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *
     }
     complete_packet[0] = regaddr;
 
-    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (oled_i2c_address >> 1), complete_packet, length + 1, 0, 0, MS2ST(timeout));
+    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (devaddr >> 1), complete_packet, length + 1, 0, 0, MS2ST(timeout));
     return chibios_to_qmk(&status);
 }
 
-i2c_status_t oled_i2c_transmit(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout)
+i2c_status_t i2c2_transmit(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout)
 {
-    oled_i2c_address = address;
-    i2cStart(&I2CD2, &oledi2cconfig);
-    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (oled_i2c_address >> 1), data, length, 0, 0, MS2ST(timeout));
+    i2cStart(&I2CD2, &i2c2cconfig);
+    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (address >> 1), data, length, 0, 0, MS2ST(timeout));
     return chibios_to_qmk(&status);
 }
 
-void oled_i2c_stop(void)
+i2c_status_t i2c2_receive(uint8_t address, uint8_t *data, uint16_t length, uint16_t timeout) {
+    i2cStart(&I2CD2, &i2c2cconfig);
+    msg_t status = i2cMasterReceiveTimeout(&I2CD2, (address >> 1), data, length, MS2ST(timeout));
+    return chibios_to_qmk(&status);
+}
+
+i2c_status_t i2c2_isDeviceReady(uint8_t address, uint16_t timeout) {
+    const uint8_t* data = {0x00};
+    return i2c2_transmit(address, &data[0], 0, timeout);
+}
+
+void i2c2_stop(void)
 {
     i2cStop(&I2CD2);
 }
 
-void oled_i2c_init(void)
+void i2c2_init(void)
 {
     palSetPadMode(GPIOA, 9, PAL_MODE_INPUT);
     palSetPadMode(GPIOA, 10, PAL_MODE_INPUT);
@@ -165,7 +173,7 @@ void oled_i2c_init(void)
     palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(4) | PAL_STM32_OTYPE_OPENDRAIN);
 
     oled_i2c_address = OLED_DISPLAY_ADDRESS << 1;
-    i2cStart(&I2CD2, &oledi2cconfig);
+    i2cStart(&I2CD2, &i2c2cconfig);
 }
 
 static void InvertCharacter(uint8_t *cursor)
@@ -186,7 +194,7 @@ bool oled_init(uint8_t rotation)
     } else {
         oled_rotation_width = OLED_DISPLAY_HEIGHT;
     }
-    oled_i2c_init();
+    i2c2_init();
 
     static const uint8_t PROGMEM display_setup1[] = {
         I2C_CMD,

@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef OLEDH
+#include "i2c_master.h"
+
 #define OLEDH
 
 #define OLED_DISPLAY_ADDRESS       0x3C
@@ -138,5 +140,13 @@ uint8_t oled_max_chars(void);
 // Returns the maximum number of lines that will fit on the oled
 uint8_t oled_max_lines(void);
 
+
+//
+i2c_status_t i2c2_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c2_transmit(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c2_receive(uint8_t address, uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c2_isDeviceReady(uint8_t address, uint16_t timeout);
+void i2c2_stop(void);
+void i2c2_init(void);
 
 #endif
