@@ -96,7 +96,7 @@ void matrix_init_user(void)
     oled_on();
 
     uint8_t result;
-    result = IS31FL3733_init(left_hand.address, 0);
+    result = IS31FL3733_init(left_hand.address, 1);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&left_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -141,7 +141,7 @@ void matrix_init_user(void)
         printf("failed to init 0x50: %d\n", result);
     }
 
-    result = IS31FL3733_init(right_hand.address, 0);
+    result = IS31FL3733_init(right_hand.address, 2);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&right_hand, i, IS31FL3733_LED_MODE_PWM);
