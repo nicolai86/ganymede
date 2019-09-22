@@ -5,6 +5,14 @@ the Ganymede keyboard. An ARM based, split ergonomic keyboard.
 
 ## changelog 
 
+### v0.5 / rev3
+
+<ul style="list-style-type: none; margin: 0; padding: 0;">
+    <li>+ choc support</li>
+    <li>+ I2C eeprom (M24M01)</li>
+    <li>- cherry mx support</li>
+</ul>
+
 ### v0.4 / rev2
 
 <ul style="list-style-type: none; margin: 0; padding: 0;">
