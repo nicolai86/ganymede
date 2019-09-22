@@ -166,7 +166,7 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
         return result;
     }
     // Disable software shutdown, enable breath
-    result = IS31FL3733_write_register( addr, ISSI_REG_CONFIGURATION, (sync << 6) | 0x01 | 0x02 );
+    result = IS31FL3733_write_register( addr, ISSI_REG_CONFIGURATION, sync | 0x01 | 0x02 );
     if (result) {
         // for (;;) printf("failed to init: 10\n");
         return result;
