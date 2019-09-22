@@ -23,16 +23,6 @@
 #include "i2c_master.h"
 #include "progmem.h"
 
-// This is a 7-bit address, that gets left-shifted and bit 0
-// set to 0 for write, 1 for read (as per I2C protocol)
-// The address will vary depending on your wiring:
-// 00 <-> GND
-// 01 <-> SCL
-// 10 <-> SDA
-// 11 <-> VCC
-// ADDR1 represents A1:A0 of the 7-bit address.
-// ADDR2 represents A3:A2 of the 7-bit address.
-// The result is: 0b101(ADDR2)(ADDR1)
 #define ISSI_ADDR_DEFAULT 0x50
 
 #define ISSI_COMMANDREGISTER 0xFD
@@ -40,16 +30,16 @@
 #define ISSI_INTERRUPTMASKREGISTER 0xF0
 #define ISSI_INTERRUPTSTATUSREGISTER 0xF1
 
-#define ISSI_PAGE_LEDCONTROL 0x00 //PG0
-#define ISSI_PAGE_PWM 0x01        //PG1
-#define ISSI_PAGE_AUTOBREATH 0x02 //PG2
-#define ISSI_PAGE_FUNCTION 0x03   //PG3
+#define ISSI_PAGE_LEDCONTROL 0x00 // PG0
+#define ISSI_PAGE_PWM 0x01        // PG1
+#define ISSI_PAGE_AUTOBREATH 0x02 // PG2
+#define ISSI_PAGE_FUNCTION 0x03   // PG3
 
-#define ISSI_REG_CONFIGURATION 0x00 //PG3
-#define ISSI_REG_GLOBALCURRENT 0x01 //PG3
-#define ISSI_REG_RESET 0x11// PG3
-#define ISSI_REG_SWPULLUP 0x0F //PG3
-#define ISSI_REG_CSPULLUP 0x10 //PG3
+#define ISSI_REG_CONFIGURATION 0x00 // PG3
+#define ISSI_REG_GLOBALCURRENT 0x01 // PG3
+#define ISSI_REG_RESET    0x11      // PG3
+#define ISSI_REG_SWPULLUP 0x0F      // PG3
+#define ISSI_REG_CSPULLUP 0x10      // PG3
 
 #ifndef ISSI_TIMEOUT
   #define ISSI_TIMEOUT 100
@@ -101,14 +91,12 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     i2c_status_t result;
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER_WRITELOCK, 0xC5 );
     if (result) {
-        // for (;;) printf("failed to init: 1: %d\n", result);
         return result;
     }
 
     // Select PG0
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER, ISSI_PAGE_LEDCONTROL );
     if (result) {
-        // for (;;) printf("failed to init: 2\n");
         return result;
     }
 
@@ -117,7 +105,6 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     {
         result = IS31FL3733_write_register( addr, i, 0x00 );
         if (result) {
-            // for (;;) printf("failed to init: 3\n");
             return result;
         }
     }
@@ -125,14 +112,12 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     // Unlock the command register.
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER_WRITELOCK, 0xC5 );
     if (result) {
-        // for (;;) printf("failed to init: 4\n");
         return result;
     }
 
     // Select PG1
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER, ISSI_PAGE_PWM );
     if (result) {
-        // for (;;) printf("failed to init: 5\n");
         return result;
     }
     // Set PWM on all LEDs to 0
@@ -141,7 +126,6 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     {
         result = IS31FL3733_write_register( addr, i, 0x00 );
         if (result) {
-            // for (;;) printf("failed to init: 6\n");
             return result;
         }
     }
@@ -149,26 +133,22 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
     // Unlock the command register.
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER_WRITELOCK, 0xC5 );
     if (result) {
-        // for (;;) printf("failed to init: 7\n");
         return result;
     }
 
     // Select PG3
     result = IS31FL3733_write_register( addr, ISSI_COMMANDREGISTER, ISSI_PAGE_FUNCTION );
     if (result) {
-        // for (;;) printf("failed to init: 8\n");
         return result;
     }
     // Set global current to maximum.
     result = IS31FL3733_write_register( addr, ISSI_REG_GLOBALCURRENT, 0xFF );
     if (result) {
-        // for (;;) printf("failed to init: 9\n");
         return result;
     }
     // Disable software shutdown, enable breath
     result = IS31FL3733_write_register( addr, ISSI_REG_CONFIGURATION, sync | 0x01 | 0x02 );
     if (result) {
-        // for (;;) printf("failed to init: 10\n");
         return result;
     }
 
