@@ -152,6 +152,16 @@ i2c_status_t i2c2_receive(uint8_t address, uint8_t *data, uint16_t length, uint1
     return chibios_to_qmk(&status);
 }
 
+i2c_status_t i2c2_getErrors() {
+    return i2cGetErrors(&I2CD2);
+}
+
+i2c_status_t i2c2_transceive(uint8_t address, uint8_t *writeData, uint16_t writeLength, uint8_t *readData, uint16_t readLength, uint16_t timeout) {
+    i2cStart(&I2CD2, &i2c2cconfig);
+    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (address >> 1), writeData, writeLength, readData, readLength, MS2ST(timeout));
+    return chibios_to_qmk(&status);
+}
+
 i2c_status_t i2c2_isDeviceReady(uint8_t address, uint16_t timeout) {
     const uint8_t* data = {0x00};
     return i2c2_transmit(address, &data[0], 0, timeout);

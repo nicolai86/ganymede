@@ -144,6 +144,8 @@ uint8_t oled_max_lines(void);
 //
 i2c_status_t i2c2_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *data, uint16_t length, uint16_t timeout);
 i2c_status_t i2c2_transmit(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout);
+i2c_status_t i2c2_transceive(uint8_t address, uint8_t *writeData, uint16_t writeLength, uint8_t *readData, uint16_t readLength, uint16_t timeout);
+i2c_status_t i2c2_getErrors(void);
 i2c_status_t i2c2_receive(uint8_t address, uint8_t *data, uint16_t length, uint16_t timeout);
 i2c_status_t i2c2_isDeviceReady(uint8_t address, uint16_t timeout);
 void i2c2_stop(void);

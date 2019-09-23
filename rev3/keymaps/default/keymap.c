@@ -20,6 +20,8 @@ enum macro_keycodes {
 #define KC_RST   RESET
 #define KC_EEPROM_READ KC_F24
 #define KC_EEPROM_WRITE KC_F23
+#define KC_EEPROM_PAGE_WRITE KC_F21
+#define KC_EEPROM_DUMP KC_F22
 #define KC_CTLTB CTL_T(KC_TAB)
 #define KC_ALTZ  ALT_T(KC_Z)
 #define KC_GUI_EQ RGUI_T(KC_EQUAL)
@@ -99,14 +101,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                           UNDS,  PLUS,  LBRC,  RBRC,  BSLS,  TILD, \
                                         TRNS,   TRNS,  TRNS,  TRNS, \
 
-                          TRNS,  TRNS, TRNS,  TRNS,  TRNS,  TRNS, \
-                          TRNS,  TRNS, TRNS,  TRNS,  TRNS,  TRNS, \
-                          LCTRL, TRNS, TRNS,  TRNS,  TRNS,  TRNS, \
-                          EEPROM_WRITE,  EEPROM_READ, TRNS, RST
+                          TRNS,  TRNS, TRNS,  TRNS,  TRNS,  EEPROM_DUMP, \
+                          TRNS,  TRNS, TRNS,  TRNS,  EEPROM_PAGE_WRITE,  EEPROM_WRITE, \
+                          LCTRL, TRNS, TRNS,  TRNS,  TRNS,  EEPROM_READ, \
+                          TRNS, TRNS, TRNS, RST
                         ),
 };
 
-uint8_t data = 0;
+uint8_t data[8] = {0,0,0,0,0,0,0,0};
+uint8_t cnter = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record)
 {
@@ -127,18 +130,69 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
     IS31FL3733_state_update_pwm_buffers(state);
 
     switch (keycode) {
+        case KC_EEPROM_PAGE_WRITE: {
+            if (record->event.pressed) return false;
+            cnter++;
+
+            for (int i = 0; i < 8; i++) {
+                data[i] = cnter;
+            }
+            uint8_t result;
+
+            result = m24m01_page_write(0x50, 0, &data[0], sizeof(data));
+            printf("wrote %d bytes to eeprom with result: %d (%d) (expected: %2X)\n", sizeof(data), result, i2c2_getErrors(), cnter);
+            return false;
+        }
+        case KC_EEPROM_DUMP: {
+            if (record->event.pressed) return false;
+
+            uint16_t totalNumPages = 1024/128;
+            uint8_t data[128];
+            for (uint8_t i = 0; i < totalNumPages; i++) {
+                uint8_t result = m24m01_page_read(0x50, i*128, &data[0], sizeof(data));
+                printf("read %d byte from eeprom with result: %d\n", sizeof(data), result);
+                for (int i = 0; i < 128; i++) {
+                    printf("%2X", data[i]);
+                    if (i < 127) printf(", ");
+                }
+                printf("\n");
+            }
+            return false;
+        }
         case KC_EEPROM_WRITE: {
             if (record->event.pressed) return false;
-            uint8_t result = m24m01_byte_write(0x50, 1, 1, ++data);
-            printf("wrote 42 to m42m01 with result:%d\n", result);
+            cnter++;
+
+            for (int i = 0; i < 8; i++) {
+                data[i] = cnter;
+            }
+            uint8_t result;
+            for (int i = 0; i < 2; i++) {
+                result = m24m01_byte_write(0x50, i, cnter);
+            }
+            printf("wrote data 1 by 1: %d\n", result);
+
             return false;
         }
         case KC_EEPROM_READ: {
             if (record->event.pressed) return false;
-            uint8_t d = 0xff;
-            uint8_t result = m24m01_random_byte_read(0x50, 1, 1, &d);
-            printf("read 1/1 to m42m01 with result: %d and data: %d\n", result, d);
-            data = d;
+            for (int i = 0; i < 8; i++) {
+                data[i] = 0xFF;
+            }
+
+            uint8_t result;
+            // read first 8 bytes starting at 0/0
+            result = m24m01_random_byte_read(0x50, 0, &data[0]);
+            for (int i = 0; i < 7; i++) {
+                result = m24m01_byte_read(0x50, &data[i+1]);
+            }
+
+            printf("read %d byte 1 by 1 from eeprom with result: %d\n", sizeof(data), result);
+            for (int i = 0; i < 8; i++) {
+                printf("%2X", data[i]);
+                if (i < 7) printf(", ");
+            }
+            printf("\n");
             return false;
         }
         case KC_RST: // Custom RESET code

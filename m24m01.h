@@ -21,7 +21,11 @@
 #define EEPROM_LONG_TIMEOUT    1000
 
 uint8_t init_m24m01(void);
-uint8_t m24m01_page_read(uint8_t address, uint8_t page, uint8_t*data, uint16_t length);
-uint8_t m24m01_page_write(uint8_t address, uint8_t page, const uint8_t*data);
-uint8_t m24m01_random_byte_read(uint8_t address, uint8_t addr1, uint8_t addr2, uint8_t *data);
-uint8_t m24m01_byte_write(uint8_t address, uint8_t addr1, uint8_t addr2, uint8_t data);
+
+// TODO these don't work yet.
+uint8_t m24m01_page_read(uint8_t address, uint16_t eepromAddr, uint8_t*data, uint16_t length);
+uint8_t m24m01_page_write(uint8_t address, uint16_t eepromAddr, const uint8_t *data, uint16_t length);
+
+uint8_t m24m01_byte_read(uint8_t address, uint8_t *data);
+uint8_t m24m01_random_byte_read(uint8_t address, uint16_t eepromAddr, uint8_t *data);
+uint8_t m24m01_byte_write(uint8_t address, uint16_t eepromAddr, uint8_t data);
