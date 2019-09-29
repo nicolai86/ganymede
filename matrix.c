@@ -91,20 +91,16 @@ static void select_row(uint8_t row)
         writePinLow(row_pins[row]);
         return;
     }
-    uint8_t ports[] = { 0b11111111, ~(1 << (row - MATRIX_ROWS_PER_SIDE)) };
-    i2c_transmit(PCA9675_I2C_ADDR << 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
-    i2c_stop();
+
+    pca9675_write_ports(0b11111111, ~(1 << (row - MATRIX_ROWS_PER_SIDE)));
 }
 
-static void unselect_row(uint8_t row)
-{
+static void unselect_row(uint8_t row) {
     if (row < MATRIX_ROWS_PER_SIDE) {
         setPinInputHigh(row_pins[row]);
         return;
     }
-    uint8_t ports[] = { 0b11111111, row - MATRIX_ROWS_PER_SIDE,  };
-    i2c_transmit(PCA9675_I2C_ADDR << 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
-    i2c_stop();
+    pca9675_write_ports(0b11111111, row - MATRIX_ROWS_PER_SIDE);
 }
 
 static bool read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
@@ -121,10 +117,10 @@ static bool read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
         if (isLeftSide) {
             pin_state = readPin(col_pins[col_index]);
         } else {
-            uint8_t ports[] = { 0b11111111, 0 };
-            i2c_receive((PCA9675_I2C_ADDR << 1) | 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
-            i2c_stop();
-            pin_state = (ports[0] & (1 << col_index));
+            uint8_t a = 0b11111111;
+            uint8_t b = 0;
+            pca9675_read_ports(&a, &b);
+            pin_state = (a & (1 << col_index));
         }
 
         current_matrix[current_row] |=  pin_state ? 0 : (ROW_SHIFTER << col_index);
@@ -136,9 +132,7 @@ static bool read_cols_on_row(matrix_row_t current_matrix[], uint8_t current_row)
     return (last_row_value != current_matrix[current_row]);
 }
 
-uint8_t matrix_scan(void)
-{
-    // TODO i2c error handling
+uint8_t matrix_scan(void) {
     bool changed = false;
 
     for (uint8_t current_row = 0; current_row < MATRIX_ROWS; current_row++) {
@@ -184,13 +178,9 @@ uint8_t matrix_key_count(void)
     return count;
 }
 
-static void unselect_rows(void)
-{
-    printf("unselecting all columns\n");
+static void unselect_rows(void) {
     // pull io expander pins high
-    uint8_t ports[] = { 0b11111111, 0b11111111 };
-    i2c_transmit(PCA9675_I2C_ADDR << 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
-    i2c_stop();
+    pca9675_write_ports(0b11111111, 0b11111111);
 
     // GPIO
     for (uint8_t x = 0; x < MATRIX_ROWS; x++) {
@@ -200,16 +190,13 @@ static void unselect_rows(void)
     }
 }
 
-static void init_pins(void)
-{
-    printf("initializing all pins\n");
+static void init_pins(void) {
+    // printf("initializing all pins\n");
     unselect_rows();
     for (uint8_t x = 0; x < MATRIX_COLS; x++) {
         setPinInputHigh(col_pins[x]);
     }
 
     // pull io expander column pins high
-    uint8_t ports[] = { 0b11111111, 0b11111111 };
-    i2c_transmit(PCA9675_I2C_ADDR << 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
-    i2c_stop();
+    pca9675_write_ports(0b11111111, 0b11111111);
 }

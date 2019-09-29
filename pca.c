@@ -49,3 +49,19 @@ uint8_t init_pca9675(void)
 
     return 0;
 }
+
+uint8_t pca9675_read_ports(uint8_t *a, uint8_t *b) {
+    uint8_t ports[] = { *a, *b };
+    uint8_t result = i2c_receive((PCA9675_I2C_ADDR << 1) | 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
+    i2c_stop();
+    *a = ports[0];
+    *b = ports[1];
+    return result;
+}
+
+uint8_t pca9675_write_ports(uint8_t a, uint8_t b) {
+    uint8_t ports[] = { a, b };
+    uint8_t result = i2c_transmit(PCA9675_I2C_ADDR << 1, (void *)&ports, sizeof(ports), PCA9675_I2C_TIMEOUT);
+    i2c_stop();
+    return result;
+}

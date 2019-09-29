@@ -15,3 +15,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 uint8_t init_pca9675(void);
+uint8_t pca9675_write_ports(uint8_t a, uint8_t b);
+uint8_t pca9675_read_ports(uint8_t *a, uint8_t *b);
