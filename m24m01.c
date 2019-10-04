@@ -41,7 +41,6 @@ uint8_t m24m01_byte_read(uint8_t address, uint8_t *data) {
 uint8_t m24m01_page_read(uint8_t address, uint16_t eepromAddr, uint8_t*data, uint16_t length)
 {
     uint8_t location[2] = {(eepromAddr >> 8) & 0x00FF, (eepromAddr & 0x00FF)};
-    printf("reading %d bytes from %2X / %2X\n", length, location[0], location[1]);
     uint8_t status = i2c2_transceive((address<<1), &location[0], 2, &data[0], length, EEPROM_LONG_TIMEOUT);
     i2c2_stop();
     return status;

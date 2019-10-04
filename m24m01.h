@@ -17,12 +17,11 @@
 #define M24M01_WC_PAD GPIOC
 #define M24M01_WC_PIN 13
 
-#define EEPROM_ADDRESS         0xA0
+#define EEPROM_ADDRESS         0x50
 #define EEPROM_LONG_TIMEOUT    1000
 
 uint8_t init_m24m01(void);
 
-// TODO these don't work yet.
 uint8_t m24m01_page_read(uint8_t address, uint16_t eepromAddr, uint8_t*data, uint16_t length);
 uint8_t m24m01_page_write(uint8_t address, uint16_t eepromAddr, const uint8_t *data, uint16_t length);
 
