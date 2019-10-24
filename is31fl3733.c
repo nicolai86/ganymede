@@ -79,7 +79,7 @@ void IS31FL3733_write_buffer( uint8_t addr, uint8_t page, uint8_t *pwm_buffer )
     i2c_stop();
 }
 
-uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
+uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync, uint8_t interruptsMask, uint8_t currentMax)
 {
     // In order to avoid the LEDs being driven with garbage data
     // in the LED driver's PWM registers, shutdown is enabled last.
@@ -142,12 +142,18 @@ uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync)
         return result;
     }
     // Set global current to maximum.
-    result = IS31FL3733_write_register( addr, ISSI_REG_GLOBALCURRENT, 0xFF );
+    result = IS31FL3733_write_register( addr, ISSI_REG_GLOBALCURRENT, currentMax );
     if (result) {
         return result;
     }
     // Disable software shutdown, enable breath
-    result = IS31FL3733_write_register( addr, ISSI_REG_CONFIGURATION, sync | 0x01 | 0x02 );
+    result = IS31FL3733_write_register( addr, ISSI_REG_CONFIGURATION, sync | 0x01 | 0x02 | 0x04 );
+    if (result) {
+        return result;
+    }
+
+    // pass on interrupts
+    result = IS31FL3733_write_register( addr, ISSI_INTERRUPTMASKREGISTER, interruptsMask);
     if (result) {
         return result;
     }

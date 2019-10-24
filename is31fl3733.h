@@ -44,7 +44,7 @@ typedef struct is31_state {
   uint8_t led_control_registers[24];
 } is31_state;
 
-uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync );
+uint8_t IS31FL3733_init( uint8_t addr, uint8_t sync, uint8_t interruptsMask, uint8_t currentMax );
 
 void IS31FL3733_state_update_pwm_buffers(is31_state*state);
 void IS31FL3733_state_update_led_control_registers( is31_state *state );
@@ -268,6 +268,11 @@ void IS31FL3733_state_set_control_register( is31_state *state, uint8_t index, bo
 #define IS31FL3733_SWPUR (0x0F) /// SWy Pull-Up Resistor selection register. Write only.
 #define IS31FL3733_CSPDR (0x10) /// CSx Pull-Down Resistor selection register. Write only.
 #define IS31FL3733_RESET (0x11) /// Reset register. Read only.
+// interrupt register bits
+#define IS31FL3733_INTERRUPT_IAC (1<<3) /// Auto clear interrupt
+#define IS31FL3733_INTERRUPT_IAB (1<<2) /// Auto Breath interrupt
+#define IS31FL3733_INTERRUPT_IS (1<<1) /// Dot short interrupt
+#define IS31FL3733_INTERRUPT_IO (1<<0) /// Dot open interrupt
 /// CR register bits.
 #define IS31FL3733_CR_SYNC_MASTER (0x40) /// Configure as clock master device.
 #define IS31FL3733_CR_SYNC_SLAVE  (0x80) /// Configure as clock slave device.

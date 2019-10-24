@@ -51,7 +51,7 @@ static i2c_status_t chibios_to_qmk(const msg_t *status)
             return I2C_STATUS_TIMEOUT;
         // I2C_BUS_ERROR, I2C_ARBITRATION_LOST, I2C_ACK_FAILURE, I2C_OVERRUN, I2C_PEC_ERROR, I2C_SMB_ALERT
         default:
-            return I2C_STATUS_ERROR;
+            return *status;
     }
 }
 
