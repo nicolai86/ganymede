@@ -164,7 +164,7 @@ i2c_status_t i2c2_transceive(uint8_t address, uint8_t *writeData, uint16_t write
 
 i2c_status_t i2c2_isDeviceReady(uint8_t address, uint16_t timeout) {
     const uint8_t* data = {0x00};
-    return i2c2_transmit(address, &data[0], 0, timeout);
+    return i2c2_transmit(address<<1, &data[0], 0, timeout);
 }
 
 void i2c2_stop(void)
