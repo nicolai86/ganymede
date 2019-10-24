@@ -113,21 +113,15 @@ uint8_t cnter = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record)
 {
-    is31_state *state = &left_hand;
-    uint8_t rowOffset = 0;
     if (record->event.key.row >= 4) {
-        state = &right_hand;
-        rowOffset = 4;
-    }
-
-    if (record->event.pressed) {
-        IS31FL3733_state_set_color(state, record->event.key.row-rowOffset, record->event.key.col, !(IS_LAYER_ON(_LOWER) || IS_LAYER_ON(_RAISE)) ? 255 : 0, IS_LAYER_ON(_LOWER) ? 255 : 0, IS_LAYER_ON(_RAISE) ? 255 : 0);
-        // IS31FL3733_state_configure_led_abm(state, state->matrix[record->event.key.row-rowOffset * 6 + record->event.key.col].b, IS31FL3733_LED_MODE_ABM2);
+        right_hand_brightness[record->event.key.row-4][record->event.key.col] = 255;
+        right_hand_operation[record->event.key.row-4][record->event.key.col] = -25;
+        right_hand_limit[record->event.key.row-4][record->event.key.col] = 255;
     } else {
-        IS31FL3733_state_set_color(state, record->event.key.row-rowOffset, record->event.key.col, 0, 0, 0);
-        // IS31FL3733_state_configure_led_abm(state, state->matrix[record->event.key.row-rowOffset * 6 + record->event.key.col].b, IS31FL3733_LED_MODE_ABM2);
+        left_hand_brightness[record->event.key.row][record->event.key.col] = 255;
+        left_hand_operation[record->event.key.row][record->event.key.col] = -25;
+        left_hand_limit[record->event.key.row][record->event.key.col] = 255;
     }
-    IS31FL3733_state_update_pwm_buffers(state);
 
     switch (keycode) {
         case KC_EEPROM_PAGE_WRITE: {

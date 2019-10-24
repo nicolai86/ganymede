@@ -54,6 +54,8 @@ void matrix_scan_kb(void)
 __attribute__ ((weak))
 void matrix_scan_user(void)
 {
+    IS31FL3733_state_update_pwm_buffers(&left_hand);
+    IS31FL3733_state_update_pwm_buffers(&right_hand);
 }
 
 inline

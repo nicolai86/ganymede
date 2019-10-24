@@ -68,6 +68,62 @@ IS31FL3733_ABM ABM2 = {
     Times: 1
 };
 
+static virtual_timer_t led_vt;
+
+int left_hand_brightness[4][6] = {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+int right_hand_brightness[4][6] = {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+
+int left_hand_operation[4][6] = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}};
+int right_hand_operation[4][6] = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}};
+
+uint8_t left_hand_limit[4][6] = {{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5}};
+uint8_t right_hand_limit[4][6] = {{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5}};
+
+static void led_cb(void *arg) {
+
+      for (int row = 0; row < 4; row++) {
+        for (int col = 0; col < 6; col++) {
+            {
+                int increment = left_hand_operation[row][col];
+                int value = left_hand_brightness[row][col];
+                value += increment;
+                if (value >= left_hand_limit[row][col]) {
+                    increment = -1;
+                    value = left_hand_limit[row][col];
+                } else if (value < 0) {
+                    value = 0;
+                    increment = 1;
+                    left_hand_limit[row][col] = 5;
+                }
+                left_hand_operation[row][col] = increment;
+                left_hand_brightness[row][col] = value;
+                IS31FL3733_state_set_color(&left_hand, row, col, value, 0, 0);
+            }
+
+            {
+                int increment = right_hand_operation[row][col];
+                int value = right_hand_brightness[row][col];
+                value += increment;
+                if (value >= right_hand_limit[row][col]) {
+                    increment = -1;
+                    value = right_hand_limit[row][col];
+                } else if (value < 0) {
+                    value = 0;
+                    increment = 1;
+                    right_hand_limit[row][col] = 5;
+                }
+                right_hand_operation[row][col] = increment;
+                right_hand_brightness[row][col] = value;
+                IS31FL3733_state_set_color(&right_hand, row, col, value, 0, 0);
+            }
+        }
+    }
+
+  chSysLockFromISR();
+  chVTSetI(&led_vt, MS2ST(140), led_cb, NULL);
+  chSysUnlockFromISR();
+}
+
 void matrix_init_user(void)
 {
     debug_enable = true;
@@ -78,7 +134,7 @@ void matrix_init_user(void)
     oled_on();
 
     uint8_t result;
-    result = IS31FL3733_init(left_hand.address, 0);
+    result = IS31FL3733_init(left_hand.address, 0, 0, 125);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&left_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -110,7 +166,7 @@ void matrix_init_user(void)
         for (;;) printf("failed to init 0x50\n");
     }
 
-    result = IS31FL3733_init(right_hand.address, 0);
+    result = IS31FL3733_init(right_hand.address, 0, 0, 125);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&right_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -141,6 +197,10 @@ void matrix_init_user(void)
     } else {
         for (;;) printf("failed to init 0x53: %d\n", result);
     }
+
+    chVTObjectInit(&led_vt);
+
+  chVTSet(&led_vt, MS2ST(50), led_cb, NULL);
 }
 
 void keyboard_post_init_user(void)

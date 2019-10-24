@@ -4,6 +4,7 @@
 #include "hal.h"
 #include "../is31fl3733.h"
 #include "../m24m01.h"
+#include "raw_hid.h"
 
 const is31_led left_hand_matrix[4][6] = {
     {{F_2, D_2, E_2}, {F_5, D_5, E_5}, {F_7, D_7, E_7},    {F_9, D_9, E_9},     {F_12, D_12, E_12},  {F_15, D_15, E_15}},
@@ -81,8 +82,122 @@ IS31FL3733_ABM ABM2 = {
     Times: 1
 };
 
+static void leftSideISSIABMInterrupt(void *arg) {
+  (void)arg;
+  xprintf("left hand issi interrupt\n");
+  if(palReadPad(GPIOC, 14U) == PAL_HIGH) {
+    /* Rising edge. */
+  } else {
+    /* Falling edge. */
+    xprintf("left hand issi is done with ABM\n");
+  }
+}
+
+static virtual_timer_t led_vt;
+
+int left_hand_brightness[4][6] = {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+int right_hand_brightness[4][6] = {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+
+int left_hand_operation[4][6] = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}};
+int right_hand_operation[4][6] = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}};
+
+uint8_t left_hand_limit[4][6] = {{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5}};
+uint8_t right_hand_limit[4][6] = {{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5}};
+
+static void led_cb(void *arg) {
+
+      for (int row = 0; row < 4; row++) {
+        for (int col = 0; col < 6; col++) {
+            {
+                int increment = left_hand_operation[row][col];
+                int value = left_hand_brightness[row][col];
+                value += increment;
+                if (value >= left_hand_limit[row][col]) {
+                    increment = -1;
+                    value = left_hand_limit[row][col];
+                } else if (value < 0) {
+                    value = 0;
+                    increment = 1;
+                    left_hand_limit[row][col] = 5;
+                }
+                left_hand_operation[row][col] = increment;
+                left_hand_brightness[row][col] = value;
+                IS31FL3733_state_set_color(&left_hand, row, col, value, 0, 0);
+            }
+
+            {
+                int increment = right_hand_operation[row][col];
+                int value = right_hand_brightness[row][col];
+                value += increment;
+                if (value >= right_hand_limit[row][col]) {
+                    increment = -1;
+                    value = right_hand_limit[row][col];
+                } else if (value < 0) {
+                    value = 0;
+                    increment = 1;
+                    right_hand_limit[row][col] = 5;
+                }
+                right_hand_operation[row][col] = increment;
+                right_hand_brightness[row][col] = value;
+                IS31FL3733_state_set_color(&right_hand, row, col, value, 0, 0);
+            }
+        }
+    }
+
+  chSysLockFromISR();
+  chVTSetI(&led_vt, MS2ST(140), led_cb, NULL);
+  chSysUnlockFromISR();
+}
+// static THD_WORKING_AREA(issiUpdateArea, 16);
+
+// /*
+//  * LED flashing thread.
+//  */
+// static THD_FUNCTION(issiUpdater, arg) {
+//   while (true) {
+//     IS31FL3733_state_update_pwm_buffers( &left_hand );
+//     IS31FL3733_state_update_pwm_buffers( &right_hand );
+//     chThdSleepMilliseconds(50);
+//   }
+// }
+
+// static THD_WORKING_AREA(issiColorUpdateArea, 16);
+
+// /*
+//  * LED flashing thread.
+//  */
+// static THD_FUNCTION(issiColorUpdater, arg) {
+//     uint8_t value = 0;
+//     bool increment = true;
+//   while (true) {
+
+//     for (int row = 0; row < 4; row++) {
+//         for (int col = 0; col < 6; col++) {
+//             IS31FL3733_state_set_color(&left_hand, row, col, value, 0, 0);
+//             IS31FL3733_state_set_color(&right_hand, row, col, value, 0, 0);
+//         }
+//     }
+
+//     if (increment) {
+//         value = value + 25 <= 255 ? value + 25 : 255;
+//         if (value == 255) {
+//             increment = false;
+//         }
+//     } else {
+//         value = value - 25 >= 0 ? value - 25 : 0;
+//         if (value == 0) {
+//             increment = true;
+//         }
+//     }
+//   }
+// }
+
+uint8_t dynamic_keymaps[512];
+
 void matrix_init_user(void)
 {
+    leftSideISSIABMInterrupt(0);
+
     // debug_enable = true;
     // debug_matrix=true;
     // debug_keyboard=true;
@@ -93,8 +208,12 @@ void matrix_init_user(void)
     oled_on();
 
     init_m24m01();
+
+    palSetPadMode(GPIOC, 14U, PAL_MODE_INPUT);
+    palPadEnableEventI(GPIOC, 14U, PAL_EVENT_MODE_FALLING_EDGE, leftSideISSIABMInterrupt);
+
     uint8_t result;
-    result = IS31FL3733_init(left_hand.address, IS31FL3733_CR_SYNC_MASTER);
+    result = IS31FL3733_init(left_hand.address, 0xff, 0x0, 0xff);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&left_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -111,7 +230,7 @@ void matrix_init_user(void)
         }
 
         for (int i = 0; i < 9; i++) {
-            IS31FL3733_state_set_backlight_color(&left_hand, i, 0, 0, 255);
+            IS31FL3733_state_set_backlight_color(&left_hand, i, 0, 0, 175);
         }
         // for (int row = 0; row < 4; row++) {
         //     for (int col = 0; col < 6; col++) {
@@ -136,10 +255,10 @@ void matrix_init_user(void)
         IS31FL3733_configure_abm (&left_hand, IS31FL3733_ABM_NUM_2, &ABM2);
         IS31FL3733_start_abm (&left_hand);
     } else {
-        printf("failed to init 0x50: %d\n", result);
+        xprintf("failed to init 0x50: %d\n", result);
     }
 
-    result = IS31FL3733_init(right_hand.address, IS31FL3733_CR_SYNC_SLAVE);
+    result = IS31FL3733_init(right_hand.address, 0xff, 0x0, 0xff);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&right_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -156,7 +275,7 @@ void matrix_init_user(void)
         }
 
         for (int i = 0; i < 9; i++) {
-            IS31FL3733_state_set_backlight_color(&right_hand, i, 0, 0, 255);
+            IS31FL3733_state_set_backlight_color(&right_hand, i, 0, 0, 175);
         }
 
         // for (int row = 0; row < 4; row++) {
@@ -182,8 +301,12 @@ void matrix_init_user(void)
         IS31FL3733_configure_abm (&right_hand, IS31FL3733_ABM_NUM_2, &ABM2);
         IS31FL3733_start_abm(&right_hand);
     } else {
-        printf("failed to init 0x53: %d\n", result);
+        xprintf("failed to init 0x53: %d\n", result);
     }
+
+    chVTObjectInit(&led_vt);
+
+  chVTSet(&led_vt, MS2ST(50), led_cb, NULL);
 }
 
 void keyboard_post_init_user(void)
@@ -197,5 +320,76 @@ void keyboard_post_init_user(void)
     palClearPad(GPIOB, 14);
     palClearPad(GPIOB, 15);
 
-    printf("keyboard post init columns\n");
+    xprintf("keyboard post init columns\n");
 }
+
+const uint8_t IS_EEPROM_READY_COMMAND = 0x80;
+const uint8_t READ_EEPROM_BYTE_COMMAND = 0x81;
+const uint8_t READ_EEPROM_PAGE_COMMAND = 0x82;
+
+void raw_hid_receive( uint8_t *data, uint8_t length ) {
+    uint8_t command = data[0];
+    if (command == 0) {
+        return;
+    }
+
+    xprintf("received raw hid data\n");
+    for (int i = 0; i < length; i++) {
+        xprintf("%2X", data[i]);
+        if (i<length-1) xprintf(", ");
+    }
+    xprintf("\n");
+
+    wait_ms(100);
+    if (length < 2) {
+        raw_hid_send(data, length);
+        return;
+    }
+
+
+
+    switch (command) {
+        case IS_EEPROM_READY_COMMAND: {
+            uint8_t result = init_m24m01();
+            data[1] = result;
+            raw_hid_send(data, length);
+            xprintf("checking if eeprom is ready; %d\n", result);
+            break;
+        };
+        case READ_EEPROM_BYTE_COMMAND: {
+            if (length < 3) {
+                raw_hid_send(data, length);
+                return;
+            }
+            uint8_t page = data[1];
+            uint8_t addr = data[2];
+            uint8_t result = 0xFF;
+            m24m01_random_byte_read(EEPROM_ADDRESS, (page << 8) | addr, &result);
+            data[3] = result;
+            raw_hid_send(data, length);
+            xprintf("read eeprom at %d/%d: %d\n", page, addr, result);
+            break;
+        }
+        case READ_EEPROM_PAGE_COMMAND: {
+            if (length < 2) {
+                raw_hid_send(data, length);
+                return;
+            }
+            uint8_t page = data[1];
+            uint8_t result[168];
+            result[0] = data[0];
+            result[1] = data[1];
+            m24m01_page_read(EEPROM_ADDRESS, page << 8, &result[2], 128);
+
+            raw_hid_send(result, 130);
+            xprintf("read eeprom at %d/0\n", page);
+            for (int i = 0; i < 128; i++) {
+                xprintf("%2X", result[2+i]);
+                if (i < 127) xprintf(", ");
+            }
+            xprintf("\n");
+            break;
+        }
+    };
+}
+

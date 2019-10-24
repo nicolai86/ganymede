@@ -38,7 +38,6 @@ uint8_t init_pca9675(void)
     i2c_stop();
 
     // TODO error handling
-    // to make the error very visible we'll stop booting at this point
 
     if (result != I2C_STATUS_SUCCESS) {
         palSetPad(GPIOB, 12);

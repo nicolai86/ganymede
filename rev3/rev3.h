@@ -6,6 +6,12 @@
 
 extern is31_state left_hand;
 extern is31_state right_hand;
+extern int left_hand_brightness[4][6];
+extern int right_hand_brightness[4][6];
+extern int left_hand_operation[4][6];
+extern int right_hand_operation[4][6];
+extern uint8_t left_hand_limit[4][6];
+extern uint8_t right_hand_limit[4][6];
 
 #define LAYOUT_all(\
     k00, k01, k02, k03, k04, k05, \
