@@ -8,13 +8,10 @@ There is no build guide for revision 0.5
 
 ## case
 
-This revision comes with a fully enclosed case which can be 3d printed. [STL](./case/v0.1.zip).
+This revision comes with a fully enclosed case which can be 3d printed.
 I've successfully 3d printed the case using SLS with Nylon 12:
 
-- [left top](./case/left-top.stl)
-- [left bottom plate](./case/left-bottom.stl)
-- [right top](./case/right-top.stl)
-- [right bottom plate](./case/right-bottom.stl)
+However I need to update the existing case for the v0.5.1 PCB first
 
 ## gerbers
 
