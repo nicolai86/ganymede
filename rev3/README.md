@@ -1,7 +1,6 @@
 # revision 0.5
 
-There is no build guide for revision 0.5; the gerber files are not yet available.
-Also, there is no bill of material available yet.
+There is no build guide for revision 0.5
 
 ## image
 
@@ -16,3 +15,8 @@ I've successfully 3d printed the case using SLS with Nylon 12:
 - [left bottom plate](./case/left-bottom.stl)
 - [right top](./case/right-top.stl)
 - [right bottom plate](./case/right-bottom.stl)
+
+## gerbers
+
+- [left side](./v0.5.1-left.zip)
+- [right side](./v0.5.1-right.zip)
