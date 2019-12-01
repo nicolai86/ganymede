@@ -20,3 +20,8 @@ I've successfully 3d printed the case using SLS with Nylon 12:
 
 - [left side](./v0.5.1-left.zip)
 - [right side](./v0.5.1-right.zip)
+
+## BOM
+
+- [left side](./v0.5.1-left.txt)
+- [right side](./v0.5.1-right.txt)
