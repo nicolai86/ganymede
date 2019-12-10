@@ -145,7 +145,7 @@ static void led_cb(void *arg) {
     }
 
   chSysLockFromISR();
-  chVTSetI(&led_vt, MS2ST(140), led_cb, NULL);
+  chVTSetI(&led_vt, TIME_MS2I(140), led_cb, NULL);
   chSysUnlockFromISR();
 }
 // static THD_WORKING_AREA(issiUpdateArea, 16);
@@ -210,7 +210,7 @@ void matrix_init_user(void)
     init_m24m01();
 
     palSetPadMode(GPIOC, 14U, PAL_MODE_INPUT);
-    palPadEnableEventI(GPIOC, 14U, PAL_EVENT_MODE_FALLING_EDGE, leftSideISSIABMInterrupt);
+    // palPadEnableEventI(GPIOC, 14U, PAL_EVENT_MODE_FALLING_EDGE, leftSideISSIABMInterrupt);
 
     uint8_t result;
     result = IS31FL3733_init(left_hand.address, 0xff, 0x0, 0xff);
@@ -306,7 +306,7 @@ void matrix_init_user(void)
 
     chVTObjectInit(&led_vt);
 
-  chVTSet(&led_vt, MS2ST(50), led_cb, NULL);
+  chVTSet(&led_vt, TIME_MS2I(50), led_cb, NULL);
 }
 
 void keyboard_post_init_user(void)

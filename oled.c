@@ -135,20 +135,20 @@ i2c_status_t i2c2_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t *data
     }
     complete_packet[0] = regaddr;
 
-    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (devaddr >> 1), complete_packet, length + 1, 0, 0, MS2ST(timeout));
+    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (devaddr >> 1), complete_packet, length + 1, 0, 0, TIME_MS2I(timeout));
     return chibios_to_qmk(&status);
 }
 
 i2c_status_t i2c2_transmit(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout)
 {
     i2cStart(&I2CD2, &i2c2cconfig);
-    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (address >> 1), data, length, 0, 0, MS2ST(timeout));
+    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (address >> 1), data, length, 0, 0, TIME_MS2I(timeout));
     return chibios_to_qmk(&status);
 }
 
 i2c_status_t i2c2_receive(uint8_t address, uint8_t *data, uint16_t length, uint16_t timeout) {
     i2cStart(&I2CD2, &i2c2cconfig);
-    msg_t status = i2cMasterReceiveTimeout(&I2CD2, (address >> 1), data, length, MS2ST(timeout));
+    msg_t status = i2cMasterReceiveTimeout(&I2CD2, (address >> 1), data, length, TIME_MS2I(timeout));
     return chibios_to_qmk(&status);
 }
 
@@ -158,7 +158,7 @@ i2c_status_t i2c2_getErrors() {
 
 i2c_status_t i2c2_transceive(uint8_t address, uint8_t *writeData, uint16_t writeLength, uint8_t *readData, uint16_t readLength, uint16_t timeout) {
     i2cStart(&I2CD2, &i2c2cconfig);
-    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (address >> 1), writeData, writeLength, readData, readLength, MS2ST(timeout));
+    msg_t status = i2cMasterTransmitTimeout(&I2CD2, (address >> 1), writeData, writeLength, readData, readLength, TIME_MS2I(timeout));
     return chibios_to_qmk(&status);
 }
 
