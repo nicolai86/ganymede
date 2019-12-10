@@ -35,9 +35,9 @@ is31_state left_hand = {
 };
 
 const is31_led right_hand_matrix[4][6] = {
-    {{F_1, E_1, D_1},    {F_4, E_4, D_4},    {F_6, E_6, D_6},    {F_9, E_9, D_9},    {F_11, E_11, D_11}, {F_14, E_14, D_14}},
-    {{I_1, H_1, G_1},    {I_4, H_4, G_4},    {I_6, H_6, G_6},    {I_9, H_9, G_9},    {I_11, H_11, G_11}, {I_14, H_14, G_14}},
-    {{L_1, K_1, J_1},    {L_4, K_4, J_4},    {L_6, K_6, J_6},    {L_9, K_9, J_9},    {L_11, K_11, J_11}, {L_14, K_14, J_14}},
+    {{F_1, D_1, E_1},    {F_4, D_4, E_4},    {F_6, D_6, E_6},    {F_9, D_9, E_9},    {F_11, D_11, E_11}, {F_14, D_14, E_14}},
+    {{I_1, G_1, H_1},    {I_4, G_4, H_4},    {I_6, G_6, H_6},    {I_9, G_9, H_9},    {I_11, G_11, H_11}, {I_14, G_14, H_14}},
+    {{L_1, J_1, K_1},    {L_4, J_4, K_4},    {L_6, J_6, K_6},    {L_9, J_9, K_9},    {L_11, J_11, K_11}, {L_14, J_14, K_14}},
     {{B_13, A_13, C_13}, {A_13, B_13, C_13}, {C_13, A_13, B_13}, {C_14, A_14, B_14}, {C_15, A_15, B_15}, {C_16, A_16, B_16}},
 };
 
@@ -82,64 +82,44 @@ IS31FL3733_ABM ABM2 = {
     Times: 1
 };
 
-static void leftSideISSIABMInterrupt(void *arg) {
-  (void)arg;
-  xprintf("left hand issi interrupt\n");
-  if(palReadPad(GPIOC, 14U) == PAL_HIGH) {
-    /* Rising edge. */
-  } else {
-    /* Falling edge. */
-    xprintf("left hand issi is done with ABM\n");
-  }
-}
-
 static virtual_timer_t led_vt;
 
-int left_hand_brightness[4][6] = {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-int right_hand_brightness[4][6] = {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+is31_animated_led left_hand_colors[4][6] = {{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}},{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}},{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}},{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}}};
+is31_animated_led right_hand_colors[4][6] = {{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}},{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}},{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}},{{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30},{0,0,0,1,4,6,5,20,30}}};
 
-int left_hand_operation[4][6] = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}};
-int right_hand_operation[4][6] = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}};
+bool animate = true;
+#define max_brightness 10
 
-uint8_t left_hand_limit[4][6] = {{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5}};
-uint8_t right_hand_limit[4][6] = {{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5},{5,5,5,5,5,5}};
+int next_value(uint8_t *current, int8_t *increment, uint8_t *limit) {
+    int value = *current + *increment;
+    if (value >= *limit) {
+        *increment = -1;
+        value = *limit;
+    } else if (value <= 0) {
+        value = 0;
+        *increment = 1;
+        *limit = max_brightness;
+    }
+    *current = (uint8_t)value;
+    return value;
+}
 
 static void led_cb(void *arg) {
-
+    if (!animate) { return; }
       for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 6; col++) {
             {
-                int increment = left_hand_operation[row][col];
-                int value = left_hand_brightness[row][col];
-                value += increment;
-                if (value >= left_hand_limit[row][col]) {
-                    increment = -1;
-                    value = left_hand_limit[row][col];
-                } else if (value < 0) {
-                    value = 0;
-                    increment = 1;
-                    left_hand_limit[row][col] = 5;
-                }
-                left_hand_operation[row][col] = increment;
-                left_hand_brightness[row][col] = value;
-                IS31FL3733_state_set_color(&left_hand, row, col, value, 0, 0);
+                int r = next_value(&left_hand_colors[row][col].r, &left_hand_colors[row][col].incrementR, &left_hand_colors[row][col].limitR) ;
+                int g = next_value(&left_hand_colors[row][col].g, &left_hand_colors[row][col].incrementG, &left_hand_colors[row][col].limitG) ;
+                int b = next_value(&left_hand_colors[row][col].b, &left_hand_colors[row][col].incrementB, &left_hand_colors[row][col].limitB) ;
+                IS31FL3733_state_set_color(&left_hand, row, col, r, g, b);
             }
 
             {
-                int increment = right_hand_operation[row][col];
-                int value = right_hand_brightness[row][col];
-                value += increment;
-                if (value >= right_hand_limit[row][col]) {
-                    increment = -1;
-                    value = right_hand_limit[row][col];
-                } else if (value < 0) {
-                    value = 0;
-                    increment = 1;
-                    right_hand_limit[row][col] = 5;
-                }
-                right_hand_operation[row][col] = increment;
-                right_hand_brightness[row][col] = value;
-                IS31FL3733_state_set_color(&right_hand, row, col, value, 0, 0);
+                int r = next_value(&right_hand_colors[row][col].r, &right_hand_colors[row][col].incrementR, &right_hand_colors[row][col].limitR) ;
+                int g = next_value(&right_hand_colors[row][col].g, &right_hand_colors[row][col].incrementG, &right_hand_colors[row][col].limitG) ;
+                int b = next_value(&right_hand_colors[row][col].b, &right_hand_colors[row][col].incrementB, &right_hand_colors[row][col].limitB) ;
+                IS31FL3733_state_set_color(&right_hand, row, col, r, g, b);
             }
         }
     }
@@ -148,56 +128,11 @@ static void led_cb(void *arg) {
   chVTSetI(&led_vt, TIME_MS2I(140), led_cb, NULL);
   chSysUnlockFromISR();
 }
-// static THD_WORKING_AREA(issiUpdateArea, 16);
-
-// /*
-//  * LED flashing thread.
-//  */
-// static THD_FUNCTION(issiUpdater, arg) {
-//   while (true) {
-//     IS31FL3733_state_update_pwm_buffers( &left_hand );
-//     IS31FL3733_state_update_pwm_buffers( &right_hand );
-//     chThdSleepMilliseconds(50);
-//   }
-// }
-
-// static THD_WORKING_AREA(issiColorUpdateArea, 16);
-
-// /*
-//  * LED flashing thread.
-//  */
-// static THD_FUNCTION(issiColorUpdater, arg) {
-//     uint8_t value = 0;
-//     bool increment = true;
-//   while (true) {
-
-//     for (int row = 0; row < 4; row++) {
-//         for (int col = 0; col < 6; col++) {
-//             IS31FL3733_state_set_color(&left_hand, row, col, value, 0, 0);
-//             IS31FL3733_state_set_color(&right_hand, row, col, value, 0, 0);
-//         }
-//     }
-
-//     if (increment) {
-//         value = value + 25 <= 255 ? value + 25 : 255;
-//         if (value == 255) {
-//             increment = false;
-//         }
-//     } else {
-//         value = value - 25 >= 0 ? value - 25 : 0;
-//         if (value == 0) {
-//             increment = true;
-//         }
-//     }
-//   }
-// }
 
 uint8_t dynamic_keymaps[512];
 
 void matrix_init_user(void)
 {
-    leftSideISSIABMInterrupt(0);
-
     // debug_enable = true;
     // debug_matrix=true;
     // debug_keyboard=true;
@@ -209,11 +144,10 @@ void matrix_init_user(void)
 
     init_m24m01();
 
-    palSetPadMode(GPIOC, 14U, PAL_MODE_INPUT);
+    // palSetPadMode(GPIOC, 14U, PAL_MODE_INPUT);
     // palPadEnableEventI(GPIOC, 14U, PAL_EVENT_MODE_FALLING_EDGE, leftSideISSIABMInterrupt);
-
     uint8_t result;
-    result = IS31FL3733_init(left_hand.address, 0xff, 0x0, 0xff);
+    result = IS31FL3733_init(left_hand.address, 0xff, IS31FL3733_INTERRUPT_IAB, 0xff);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&left_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -258,7 +192,7 @@ void matrix_init_user(void)
         xprintf("failed to init 0x50: %d\n", result);
     }
 
-    result = IS31FL3733_init(right_hand.address, 0xff, 0x0, 0xff);
+    result = IS31FL3733_init(right_hand.address, 0xff, IS31FL3733_INTERRUPT_IAB, 0xff);
     if (!result) {
         for (int i = 0; i < 192; i ++) {
             IS31FL3733_state_configure_led_abm(&right_hand, i, IS31FL3733_LED_MODE_PWM);
@@ -305,9 +239,63 @@ void matrix_init_user(void)
     }
 
     chVTObjectInit(&led_vt);
+    result = init_m24m01();
+    if (result == 0) {
+        xprintf("M24M01 ready\n");
+    } else {
+        xprintf("M24M01 not ready: %d\n", result);
+    }
 
   chVTSet(&led_vt, TIME_MS2I(50), led_cb, NULL);
 }
+
+static bool readLeftIssi = false;
+static bool readRightIssi = false;
+
+void matrix_scan_user(void)
+{
+    uint8_t val;
+    if (readLeftIssi) {
+        readLeftIssi = false;
+        IS31FL3733_state_read_register(&left_hand, IS31FL3733_ISR, &val);
+        xprintf("left interrupt: %d\n", val);
+    }
+    if (readRightIssi) {
+        readRightIssi = false;
+        IS31FL3733_state_read_register(&right_hand, IS31FL3733_ISR, &val);
+        xprintf("right interrupt: %d\n", val);
+
+        for (int i = 0; i < 9; i++) {
+            IS31FL3733_state_configure_led_abm(&right_hand, right_hand.backlight[i].b, IS31FL3733_LED_MODE_ABM1);
+        }
+        IS31FL3733_start_abm(&right_hand);
+    }
+
+    IS31FL3733_state_update_pwm_buffers(&left_hand);
+    IS31FL3733_state_update_pwm_buffers(&right_hand);
+}
+
+// static void issi_left_interrupt(EXTDriver *extp, expchannel_t channel) {
+//   chSysLockFromISR();
+//   extChannelDisableI(&EXTD1, PAL_PAD(C14));
+
+//   xprintf("left issi interrupt\n");
+//   readLeftIssi = true;
+
+//   extChannelEnableI(&EXTD1, PAL_PAD(C14));
+//   chSysUnlockFromISR();
+// }
+
+// static void issi_right_interrupt(EXTDriver *extp, expchannel_t channel) {
+//   chSysLockFromISR();
+//   extChannelDisableI(&EXTD1, PAL_PAD(C15));
+
+//   xprintf("right issi interrupt\n");
+//   readRightIssi = true;
+
+//   extChannelEnableI(&EXTD1, PAL_PAD(C15));
+//   chSysUnlockFromISR();
+// }
 
 void keyboard_post_init_user(void)
 {
@@ -321,6 +309,18 @@ void keyboard_post_init_user(void)
     palClearPad(GPIOB, 15);
 
     xprintf("keyboard post init columns\n");
+
+    palSetPadMode(GPIOC, 14, PAL_MODE_INPUT);
+    palSetPadMode(GPIOC, 15, PAL_MODE_INPUT);
+
+    // static EXTConfig extcfg = {0};
+    // static EXTChannelConfig ext_clock_channel_config_left = {
+    //     EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC, issi_left_interrupt };
+    // static EXTChannelConfig ext_clock_channel_config_right = {
+    //     EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC, issi_right_interrupt };
+    // extStart(&EXTD1, &extcfg);
+    // extSetChannelModeI(&EXTD1, PAL_PAD(C14), &ext_clock_channel_config_left);
+    // extSetChannelModeI(&EXTD1, PAL_PAD(C15), &ext_clock_channel_config_right);
 }
 
 const uint8_t IS_EEPROM_READY_COMMAND = 0x80;
@@ -345,8 +345,6 @@ void raw_hid_receive( uint8_t *data, uint8_t length ) {
         raw_hid_send(data, length);
         return;
     }
-
-
 
     switch (command) {
         case IS_EEPROM_READY_COMMAND: {

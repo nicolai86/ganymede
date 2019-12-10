@@ -22,12 +22,11 @@ enum macro_keycodes {
 #define KC_EEPROM_WRITE KC_F23
 #define KC_EEPROM_PAGE_WRITE KC_F21
 #define KC_EEPROM_DUMP KC_F22
-#define KC_CTLTB CTL_T(KC_TAB)
+#define KC_EEPROM_RDY KC_F20
 #define KC_ALTZ  ALT_T(KC_Z)
 #define KC_GUI_EQ RGUI_T(KC_EQUAL)
 #define KC_GUI_QUO GUI_T(KC_QUOTE)
-#define KC_ALTSLSH ALT_T(KC_SLASH)
-#define KC_CTRLX CTL_T(KC_X)
+#define KC_ALTSLSH ALT_T(KC_SLSH)
 
 enum keyboard_layers {
     QWERTY,
@@ -101,7 +100,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                           UNDS,  PLUS,  LBRC,  RBRC,  BSLS,  TILD, \
                                         TRNS,   TRNS,  TRNS,  TRNS, \
 
-                          TRNS,  TRNS, TRNS,  TRNS,  TRNS,  EEPROM_DUMP, \
+                          TRNS,  TRNS, TRNS,  TRNS,  EEPROM_RDY,  EEPROM_DUMP, \
                           TRNS,  TRNS, TRNS,  TRNS,  EEPROM_PAGE_WRITE,  EEPROM_WRITE, \
                           LCTRL, TRNS, TRNS,  TRNS,  TRNS,  EEPROM_READ, \
                           TRNS, TRNS, TRNS, RST
@@ -114,16 +113,27 @@ uint8_t cnter = 0;
 bool process_record_user(uint16_t keycode, keyrecord_t *record)
 {
     if (record->event.key.row >= 4) {
-        right_hand_brightness[record->event.key.row-4][record->event.key.col] = 255;
-        right_hand_operation[record->event.key.row-4][record->event.key.col] = -25;
-        right_hand_limit[record->event.key.row-4][record->event.key.col] = 255;
+        right_hand_colors[record->event.key.row-4][record->event.key.col].r = 255;
+        right_hand_colors[record->event.key.row-4][record->event.key.col].incrementR = -25;
+        right_hand_colors[record->event.key.row-4][record->event.key.col].limitR = 255;
     } else {
-        left_hand_brightness[record->event.key.row][record->event.key.col] = 255;
-        left_hand_operation[record->event.key.row][record->event.key.col] = -25;
-        left_hand_limit[record->event.key.row][record->event.key.col] = 255;
+        left_hand_colors[record->event.key.row][record->event.key.col].r = 255;
+        left_hand_colors[record->event.key.row][record->event.key.col].incrementR = -25;
+        left_hand_colors[record->event.key.row][record->event.key.col].limitR = 255;
     }
 
     switch (keycode) {
+        case KC_EEPROM_RDY: {
+            if (record->event.pressed) return false;
+
+            uint8_t result = init_m24m01();
+            if (result == 0) {
+                xprintf("M24M01 ready\n");
+            } else {
+                xprintf("M24M01 not ready: %d\n", result);
+            }
+            return false;
+        }
         case KC_EEPROM_PAGE_WRITE: {
             if (record->event.pressed) return false;
             cnter++;
@@ -132,9 +142,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                 data[i] = cnter;
             }
             uint8_t result;
-
-            result = m24m01_page_write(0x50, 0, &data[0], sizeof(data));
-            printf("wrote %d bytes to eeprom with result: %d (%d) (expected: %2X)\n", sizeof(data), result, i2c2_getErrors(), cnter);
+            result = m24m01_page_write(EEPROM_ADDRESS, 0, &data[0], sizeof(data));
+            result = result;
+            xprintf("wrote %d bytes to eeprom with result: %d (%d) (expected: %2X)\n", sizeof(data), result, i2c2_getErrors(), cnter);
             return false;
         }
         case KC_EEPROM_DUMP: {
@@ -143,13 +153,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
             uint16_t totalNumPages = 1024/128;
             uint8_t data[128];
             for (uint8_t i = 0; i < totalNumPages; i++) {
-                uint8_t result = m24m01_page_read(0x50, i*128, &data[0], sizeof(data));
-                printf("read %d byte from eeprom with result: %d\n", sizeof(data), result);
+                uint8_t result = m24m01_page_read(EEPROM_ADDRESS, i*128, &data[0], sizeof(data));
+                result = result;
+                xprintf("read %d byte from eeprom with result: %d\n", sizeof(data), result);
                 for (int i = 0; i < 128; i++) {
-                    printf("%2X", data[i]);
-                    if (i < 127) printf(", ");
+                    xprintf("%2X", data[i]);
+                    if (i < 127) xprintf(", ");
                 }
-                printf("\n");
+                xprintf("\n");
             }
             return false;
         }
@@ -162,9 +173,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
             }
             uint8_t result;
             for (int i = 0; i < 2; i++) {
-                result = m24m01_byte_write(0x50, i, cnter);
+                result = m24m01_byte_write(EEPROM_ADDRESS, i, cnter);
+                result = result;
             }
-            printf("wrote data 1 by 1: %d\n", result);
+            xprintf("wrote data 1 by 1: %d\n", result);
 
             return false;
         }
@@ -176,48 +188,38 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
 
             uint8_t result;
             // read first 8 bytes starting at 0/0
-            result = m24m01_random_byte_read(0x50, 0, &data[0]);
+            result = m24m01_random_byte_read(EEPROM_ADDRESS, 0, &data[0]);
+            result = result;
             for (int i = 0; i < 7; i++) {
-                result = m24m01_byte_read(0x50, &data[i+1]);
+                result = m24m01_byte_read(EEPROM_ADDRESS, &data[i+1]);
             }
 
-            printf("read %d byte 1 by 1 from eeprom with result: %d\n", sizeof(data), result);
+            xprintf("read %d byte 1 by 1 from eeprom with result: %d\n", sizeof(data), result);
             for (int i = 0; i < 8; i++) {
-                printf("%2X", data[i]);
-                if (i < 7) printf(", ");
+                xprintf("%2X", data[i]);
+                if (i < 7) xprintf(", ");
             }
-            printf("\n");
+            xprintf("\n");
             return false;
         }
         case KC_RST: // Custom RESET code
             if (!record->event.pressed) {
                 // reset_keyboard();
                 uint8_t error, address;
-                uint8_t nDevices;
+                uint8_t numberOfDevices;
 
-                printf("Scanning...\n");
-
-                nDevices = 0;
+                numberOfDevices = 0;
                 for(address = 1; address < 255; address++ )
                 {
-                    // The i2c_scanner uses the return value of
-                    // the Write.endTransmisstion to see if
-                    // a device did acknowledge to the address.
                     error = i2c2_isDeviceReady(address, EEPROM_LONG_TIMEOUT);
 
-                    if (error == 0)
-                    {
-                        printf("I2C device found at address %x\n", address);
-
-                        nDevices++;
-                    }
-                    else
-                    {
-                        printf("error %d at address %x\n", error, address);
+                    if (error == 0) {
+                        xprintf("I2C device found at address %x\n", address);
+                        numberOfDevices++;
                     }
                 }
 
-                printf("done: found %d\n", nDevices);
+                xprintf("done: found %d\n", numberOfDevices);
             }
             return false;
         case QWERTY:

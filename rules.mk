@@ -31,7 +31,7 @@ USE_FPU = yes
 # 0x00000000-0x00001000 area is occupied by bootlaoder.*/
 # The CORTEX_VTOR... is needed only for MCHCK/Infinity KB
 # OPT_DEFS = -DCORTEX_VTOR_INIT=0x08005000
-OPT_DEFS =
+OPT_DEFS +=
 
 # Do not put the microcontroller into power saving mode
 # when we get USB suspend event. We want it to keep updating
@@ -48,8 +48,8 @@ SRC += matrix.c i2c_master.c pca.c oled.c
 #
 BACKLIGHT_ENABLE = no
 BOOTMAGIC_ENABLE = no   # Virtual DIP switch configuration(+1000)
-MOUSEKEY_ENABLE = yes   # Mouse keys(+4700)
-EXTRAKEY_ENABLE = yes   # Audio control and System control(+450)
+MOUSEKEY_ENABLE = no   # Mouse keys(+4700)
+EXTRAKEY_ENABLE = no   # Audio control and System control(+450)
 CONSOLE_ENABLE = yes    # Console for debug(+400)
 COMMAND_ENABLE = yes     # Commands for debug and configuration
 NKRO_ENABLE = yes       # USB Nkey Rollover - if this doesn't work, see here: https://github.com/tmk/tmk_keyboard/wiki/FAQ#nkro-doesnt-work

@@ -48,6 +48,10 @@
 // Transfer buffer for TWITransmitData()
 uint8_t g_twi_transfer_buffer[20];
 
+void IS31FL3733_state_read_register( is31_state *state, uint8_t reg, uint8_t *value ) {
+    i2c_readReg(state->address, &reg, value, 1, ISSI_TIMEOUT);
+}
+
 uint8_t IS31FL3733_write_register( uint8_t addr, uint8_t reg, uint8_t data )
 {
     g_twi_transfer_buffer[0] = reg;

@@ -52,6 +52,9 @@ void IS31FL3733_state_set_color(is31_state * state, uint8_t row, uint8_t col, ui
 void IS31FL3733_state_set_backlight_color(is31_state * state, uint8_t index, uint8_t red, uint8_t green, uint8_t blue );
 void IS31FL3733_state_set_led_control_register( is31_state *state, const is31_led*led, bool red, bool green, bool blue );
 void IS31FL3733_state_set_control_register( is31_state *state, uint8_t index, bool red, bool green, bool blue );
+void IS31FL3733_state_read_register( is31_state *state, uint8_t reg, uint8_t *value );
+
+#define IS31FL3733_ISR  (0xF1) ///< Interrupt status register. Read only.
 
 #define A_1  0x00
 #define A_2  0x01

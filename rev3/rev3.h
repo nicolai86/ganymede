@@ -6,12 +6,22 @@
 
 extern is31_state left_hand;
 extern is31_state right_hand;
-extern int left_hand_brightness[4][6];
-extern int right_hand_brightness[4][6];
-extern int left_hand_operation[4][6];
-extern int right_hand_operation[4][6];
-extern uint8_t left_hand_limit[4][6];
-extern uint8_t right_hand_limit[4][6];
+extern bool animate;
+
+typedef struct is31_animated_led {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  int8_t incrementR;
+  int8_t incrementG;
+  int8_t incrementB;
+  uint8_t limitR;
+  uint8_t limitG;
+  uint8_t limitB;
+} __attribute__((packed)) is31_animated_led;
+
+extern is31_animated_led left_hand_colors[4][6];
+extern is31_animated_led right_hand_colors[4][6];
 
 #define LAYOUT_all(\
     k00, k01, k02, k03, k04, k05, \

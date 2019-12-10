@@ -43,6 +43,22 @@
 
 typedef int16_t i2c_status_t;
 
+// typedef i2c_status_t (*_i2cTransmit)(uint8_t address, const uint8_t *data, uint16_t length, uint16_t timeout);
+// typedef i2c_status_t (*_i2cReceive)(uint8_t address, uint8_t *data, uint16_t length, uint16_t timeout);
+// typedef i2c_status_t (*_i2cWriteReg)(uint8_t devaddr, uint8_t regaddr, const uint8_t *data, uint16_t length, uint16_t timeout);
+// typedef i2c_status_t (*_i2cReadReg)(uint8_t devaddr, uint8_t *regaddr, uint8_t *data, uint16_t length, uint16_t timeout);
+// typedef void (*_i2cStop)(void);
+
+// typedef struct i2c_state {
+//     I2CDriver *driver;
+//     I2CConfig *config;
+//     _i2cTransmit transmit;
+//     _i2cReceive receive;
+//     _i2cWriteReg writeReg;
+//     _i2cReadReg readReg;
+//     _i2cStop stop;
+// } i2c_state;
+
 #define I2C_STATUS_SUCCESS (0)
 #define I2C_STATUS_ERROR   (-1)
 #define I2C_STATUS_TIMEOUT (-2)

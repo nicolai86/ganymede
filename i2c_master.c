@@ -41,6 +41,7 @@ static const I2CConfig i2cconfig = {
     0,
     0
 };
+// 0x00C4092A also 1mhz?
 
 static i2c_status_t chibios_to_qmk(const msg_t *status)
 {
