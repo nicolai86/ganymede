@@ -35,6 +35,6 @@ the Ganymede keyboard. An ARM based, split ergonomic keyboard.
 
 # qmk setup
 
-- clone qmk 0.8
+- clone qmk 0.11.55
 - add ganymede as a submodule: `git submodule add https://github.com/nicolai86/ganymede.git keyboards/ganymede`
 - flash your ganymede: `make ganymede/rev3:default:dfu-util`
